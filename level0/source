@@ -1,0 +1,23 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(int argc, char **argv)
+{
+	int code = atoi(argv[1]);
+	if (code == 423) // 423 = 0x1a7
+	{
+		char *binary_path = strdup("/bin/sh");
+		int gid = getegid();
+		int uid = geteuid();
+		setresgid(gid, gid, gid);
+		setresuid(uid, uid, uid);
+		int ret = execv(binary_path, &binary_path);
+	}
+	else
+	{
+		fwrite("No !\n", 1, 5, stderr);
+	}
+	return (0);
+}

@@ -1,0 +1,3 @@
+7. On objdump -d et on voit  une fonction n qui n'est pas appelle dans le main qui contient un call a system. Quand on lance le programme sans argument il segfault. Quand on le lance avec il ecrit nope sur l'entre standard. On utilise un generateur d'offset string pour trouver l'offset d'injection. On tombe sur l'adresse 0x41346341 qui donne un offset de 72 (buffer - adresse du pointeur sur funcion?). On doit donc ecrire 72 A puis l'adresse de la fonction N pour changer la valeur de l'adresse de l'EIP.
+./level6 `python -c 'print "A" * 72 + "\x54\x84\x04\x08"
+

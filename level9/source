@@ -1,0 +1,36 @@
+#include <iostream>
+#include <cstream>
+
+class	Number
+{
+	public:
+		Number(int a) : number(a)
+		{
+		}
+
+		void setAnnotation(char *a)
+		{
+			memcpy(annotation, a, strlen(a));
+		}
+
+		virtual int operator+(Nubmber &r)
+		{
+			return (number + r.number);
+		}
+
+	private:
+		char 	annotation[100];
+		int		number;
+}
+
+int		main(int argc, char **argv)
+{
+	if (argc < 2)
+		exit(1);
+	Number *a = new Number(5);
+	Number *b = new Number(5);
+	Number &ref = *a, &ref_2 = *b;
+	ref.setAnnotation(argv[1]);
+	return ref + ref_2;
+	return (0);
+}

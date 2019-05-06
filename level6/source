@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int n(void)
+{
+	return (system("/bin/cat /home/user/level7/.pass"));
+}
+
+int m(void)
+{
+	return (puts("Nope"));
+}
+
+int main(int argc, char **argv)
+{
+	char	*buffer = (char *)malloc(64);
+	int		(*function_ptr)(void) = (void *)malloc(4);
+	
+	function_ptr = &m;
+	strcpy(buffer, argv[1]);
+	(function_ptr)();
+	return (function_ptr);
+}

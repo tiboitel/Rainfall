@@ -1,0 +1,8 @@
+3. 
+On lance le binaire et on se rend compte qu'il duplique ce que l'on ecrit sur l'entree standard.
+Quand on passe une chaine de 1000 caractere on se rend que le buffer fait 512 characters mais ne segfault pas on ne peut donc pas utiliser le meme exploit que l'exercide precedent.
+En faisant un objdump -d sur level3 on voit que la fonction main appelle la fonction v qui elle meme contient un appel a system. Pour recuperer l'entree standard elle utilise fgets puis printf pour l'afficher. Le retour de printf est ensuite stockee dans eax, la valeur sur laquelle pointe eax change avant une comparaison et empeche l'appel de system(). On ecrit un payload en python pour changer la valeur contenue a l'adresse  0x804988c pour la mettre a 64 (0x40). 
+On ecrit donc python -c 'print "\x8C\x98\x04\x08" + "A" * 60 + "%4$n"' > /tmp/payload donc l'adresse en little endian puis 60 caracter puis 4 pour re:monter dans la stack. Le totale fait 64 ce qui permet grace au $n format character de printf d'ecrire cette valeur dans l'adresse ($n permettant d'ecrire le nombre de caracteres precedant ce character).
+On lance le payload avec cat /tmp/payload - | ./level3
+
+

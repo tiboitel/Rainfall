@@ -1,0 +1,6 @@
+1. GDB level0
+disas main
+On remarque que l'input est dans eax et atoi est appele dessus donc on attend un nombre
+Cet argument est compare avec une valeur hexadecimale, on convertie en decimal ce qui donne 423
+On lance level0 avec 423 comme argument et on monte en privilege.
+On cat le flag avec cat /user/user/level1/.pass

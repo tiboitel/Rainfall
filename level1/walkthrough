@@ -1,0 +1,11 @@
+2. On utilise objdump -d sur level1
+On remarque le call a gets ainsi qu'une fonction run qui contient un appel a system. Cette fonction n'est jamais appelee on en deduit que l'exploit consiste a la call.
+On utilise un generateur de buffer overflow pour depasser le buffer de gets via la chaine 
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+On recupere un offset "0x63413563 in ?? ()" via la trace de gdb
+On calcule avec un outil l'offset de l'EIP (registre qui contient l'adresse de la prochaine instruction du processeur) qui est de 76
+On genere une chaine de 76 caracteres pour arriver a cet offset et on met l'adresse de la fonction run convertie en little endian 0x44840408 via un script python
+On lance /tmp/exploit.py - | level1
+cd /home/user/level2 && cat .pass
+
+

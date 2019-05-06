@@ -1,0 +1,27 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+char	*flag;
+
+int m(void)
+{
+	int		second = time(NULL);
+	printf("%s - %d	\n", flag, second);
+	return (0);
+}
+
+int main(int argc, char **argv)
+{
+	char	*chunk_1 = malloc(8);
+	char	*chunk_2 = malloc(8);
+	FILE	*fd;
+
+	strcpy(chunk_1, argv[1]);
+	strcpy(chunk_2, argv[2]);
+	fd = fopen("/home/user/level8/.pass", "r");
+	fgets(flag, 68, fd);
+	puts("~~");
+	return (0);
+}

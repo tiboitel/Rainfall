@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void v(void)
+{
+	char	*buffer;
+	int		flag;
+
+	fgets(buffer, 512, stdin);
+	printf(buffer);
+	flag = 0;
+	if (flag == 64)
+	{
+		fwrite("Wait ? What ?!\n", 1, 13, 1);
+		system("/bin/sh");
+	}
+}
+
+int main(int argc, char ** argv)
+{
+	v();
+}
+

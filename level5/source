@@ -1,0 +1,16 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void n(void)
+{
+	char *buffer;
+	fgets(buffer, 512, 1);
+	printf(buffer);
+	exit(1);
+}
+
+int main(int argc, char **argv)
+{
+	n();
+	return (0);
+}

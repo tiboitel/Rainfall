@@ -1,0 +1,6 @@
+6. objdump -d on voit la function <o> qui contient un call a system. Dans la fonction <n> on voit un call a printf suivi d'un exit. En utilisant le script de la fonction precedente on voit que l'offset d'attaque est de 4. L'adresse de <o> est 0x080484a4 et celle de exit est 0x80483d0: On voit que la difference n'est que sur les deux derniers octets. On ecrit le payload on convertie 0x84a4 en decimali on obtient 33956 et utilise le modificatuer %h pour modifier que les 2 dernier octets de l'adresse de exit:
+
+Le payload se compose de l'adresse que l'on veut modifier en little endian, plus la valeur en decimale moins les quatres characters deja ecrits puis on se decale de 4 octets dans la stack (taille d'une adresse) puis le modificatur h pour se mettre sur 2 octets puis n pour ecrire dans la stack le nombre de caracteres deja ecrits.
+python -c "print '\x38\x98\x04\x08' + '%33952d' + '%4\$hn'" > /tmp/payload
+
+
