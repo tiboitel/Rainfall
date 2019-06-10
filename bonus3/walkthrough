@@ -1,0 +1,15 @@
+Bonus3:
+
+On disas main avec GDB. On voit un fopen. On breakpoint dessus avec b* main+31 puis on dump les registers. On dump eax avec x/s $eax et on voit /home/user/end/.pass.
+On voit un call a atoi. Il transforme notre argument en index. Il prend en param un argument (argv[1]) on le voit grace au cmpl   $0x2,0x8(%ebp) qui montre que argc doit avoir 2 arguments. 
+fread lit le fichier et place un \0 l'offset indique par le resultat d'atoi. puis il y a un second call a fread etrange. Le
+
+<+191>:  call   0x80483d0 <fread@plt>
+
+qui ecrit un \0 a une adresse. Il y a ensuite un strcmp avec la lecture du fichier. Donc si on lance le programme avec une chaine vide. Elle est convetie en index (0) et place un \0 au debut du buffer du fichier. Il est compare avec la chaine vide renvoyee par le second read et permet d'executer execl.
+
+On dump le pass:
+cat /home/user/end/.pass
+
+endpass:
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c

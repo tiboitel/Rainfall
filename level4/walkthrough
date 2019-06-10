@@ -1,4 +1,4 @@
-5. En utilisant objdump -d on voit aue main call la fonction n. Cette fonction contient une comparaison avant un call a system. Cette comparaison compare EAX avec une valeur contenue en dure dans la memoire. La valeur d'EAX est set juste avant cette instruction par: mov eax,ds:0x8049810 . On veut donc changer l'adresse 0x8049810 par la valeur de comparaison. La comparaison se fait avec "0x1025544" qui donne 16930112.
+5. En utilisant objdump -d on voit que main call la fonction n. Cette fonction contient une comparaison avant un call a system. Cette comparaison compare EAX avec une valeur contenue en dur dans la memoire. La valeur d'EAX est set juste avant cette instruction par: mov eax,ds:0x8049810 . On veut donc changer l'adresse 0x8049810 par la valeur de comparaison. La comparaison se fait avec "0x1025544" qui donne 16930112.
 
 On utilise
 for((i=0; i<200; i++)); do echo "Index $i" && echo "AAAAAA%$i\$x" > /tmp/gg && /home/user/level4/level4 < /tmp/gg ; done | grep -B1 4141

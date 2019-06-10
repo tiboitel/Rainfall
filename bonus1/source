@@ -1,0 +1,18 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int		main(int argc, char **argv)
+{
+	char	*buffer[64];
+
+	buffer[60] = atoi(argv[1]);
+	if (buffer[60] < 10)
+	{
+		memcpy(buffer, argv[2], buffer[60] * sizeof(int));
+		if (buffer[60] == 1464814662)
+		{
+			execl("/bin/sh");
+		}
+	}
+	return (0);
+}
